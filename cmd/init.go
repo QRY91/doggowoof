@@ -12,29 +12,29 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "🐾 Initialize DoggoWoof (setup database, config, start daemon)",
-	Long: `Initialize DoggoWoof on your system:
+	Short: "🐾 Initialize DOGGOWOOF (setup your guard dog!)",
+	Long: `Initialize DOGGOWOOF on your system:
 
-- Creates local SQLite database
-- Sets up configuration file
-- Initializes alert sources
-- Optionally starts daemon
+- Creates local SQLite database (YOUR DATA STAYS HOME!)
+- Sets up configuration file (SMART DEFAULTS!)
+- Initializes alert sources (READY TO WATCH!)
+- Optionally starts daemon (GOOD BOY GOES TO WORK!)
 
-Your guard dog will be ready to watch for alerts!`,
+Your guard dog will be ready to BARK at important alerts!`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("🐕 Initializing DoggoWoof...")
+		fmt.Println("🚨🐕 INITIALIZING DOGGOWOOF... 🐕🚨")
 
 		// Get home directory
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			fmt.Printf("❌ WOOF! Error getting home directory: %v\n", err)
 			return
 		}
 
 		// Create .doggowoof directory
 		doggoDir := filepath.Join(home, ".doggowoof")
 		if err := os.MkdirAll(doggoDir, 0755); err != nil {
-			fmt.Printf("❌ Error creating .doggowoof directory: %v\n", err)
+			fmt.Printf("❌ WOOF! Error creating .doggowoof directory: %v\n", err)
 			return
 		}
 
@@ -43,53 +43,54 @@ Your guard dog will be ready to watch for alerts!`,
 		if _, err := os.Stat(dbPath); os.IsNotExist(err) {
 			file, err := os.Create(dbPath)
 			if err != nil {
-				fmt.Printf("❌ Error creating database: %v\n", err)
+				fmt.Printf("❌ WOOF! Error creating database: %v\n", err)
 				return
 			}
 			file.Close()
-			fmt.Printf("✅ Created database: %s\n", dbPath)
+			fmt.Printf("✅ CREATED DATABASE: %s\n", dbPath)
 		} else {
-			fmt.Printf("📂 Database already exists: %s\n", dbPath)
+			fmt.Printf("📂 DATABASE ALREADY EXISTS: %s\n", dbPath)
 		}
 
 		// Create config file
 		configPath := filepath.Join(home, ".doggowoof.yaml")
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			defaultConfig := `# DoggoWoof Configuration
+			defaultConfig := `# DOGGOWOOF Configuration - YOUR GUARD DOG SETTINGS!
 daemon:
   port: 8042
   webhook_endpoint: "/webhook"
   
 notifications:
-  desktop: true
-  sound: true
+  desktop: true    # BARK ON DESKTOP!
+  sound: true      # LOUD WOOFS!
   
 ai:
-  local_only: true
-  training_threshold: 10
+  local_only: true           # YOUR DATA STAYS HOME!
+  training_threshold: 10     # HOW MANY ALERTS TO LEARN FROM
   
 sources:
-  discord: []
-  github: []
-  email: []
+  discord: []      # DISCORD WEBHOOKS TO WATCH
+  github: []       # GITHUB REPOS TO GUARD  
+  email: []        # EMAIL SOURCES TO MONITOR
 `
 			if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {
-				fmt.Printf("❌ Error creating config: %v\n", err)
+				fmt.Printf("❌ WOOF! Error creating config: %v\n", err)
 				return
 			}
-			fmt.Printf("✅ Created config: %s\n", configPath)
+			fmt.Printf("✅ CREATED CONFIG: %s\n", configPath)
 		} else {
-			fmt.Printf("📂 Config already exists: %s\n", configPath)
+			fmt.Printf("📂 CONFIG ALREADY EXISTS: %s\n", configPath)
 		}
 
-		fmt.Println("\n🎉 DoggoWoof initialized successfully!")
-		fmt.Println("\nNext steps:")
-		fmt.Println("  doggo daemon start     # Start the background service")
-		fmt.Println("  doggo watch --discord  # Add Discord monitoring")
-		fmt.Println("  doggo status          # Check current state")
+		fmt.Println("\n🎉🚨 DOGGOWOOF INITIALIZED SUCCESSFULLY! 🚨🎉")
+		fmt.Println("🐕 YOUR GUARD DOG IS READY TO PROTECT YOUR ALERTS! 🐕")
+		fmt.Println("\nNEXT STEPS (UNLEASH THE POWER!):")
+		fmt.Println("  doggo daemon start     # Start the guard dog service")
+		fmt.Println("  doggo watch --discord  # Add Discord monitoring (WOOF AT MESSAGES!)")
+		fmt.Println("  doggo status          # Check if your good boy is awake")
 
 		// Desktop notification
-		if err := beeep.Notify("DoggoWoof", "🐕 Your guard dog is ready!", ""); err != nil {
+		if err := beeep.Notify("DOGGOWOOF", "🚨🐕 YOUR GUARD DOG IS READY! WOOF! 🐕🚨", ""); err != nil {
 			// Ignore notification errors
 		}
 	},

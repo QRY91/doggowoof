@@ -13,17 +13,20 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "doggo",
-	Short: "🐕 Local-first alert triage system",
-	Long: `DoggoWoof: Your personal guard dog for development alerts.
+	Short: "🚨 THE alert triage system that actually BARKS! 🚨",
+	Long: `DOGGOWOOF: Your personal guard dog for development alerts!
 
-Smart, private, and always watching. Transform information overload 
-into actionable insights with local AI that learns your priorities.
+Smart, private, and LOUD when it matters. Transform information overload 
+into actionable insights with the enthusiasm of a golden retriever and 
+the precision of a border collie.
+
+🐕 WOOF! Ready to guard your alerts? 🐕
 
 Example usage:
-  doggo init                    # Setup and start daemon
-  doggo watch --discord         # Monitor Discord webhooks  
-  doggo train --from-resolved   # Learn from your patterns
-  doggo status                  # Check current state`,
+  doggo init                    # Setup your guard dog
+  doggo watch --discord         # Monitor Discord (WOOF AT MESSAGES!)
+  doggo train --from-resolved   # Teach good boy new tricks
+  doggo status                  # Check if doggo is awake`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
