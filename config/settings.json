@@ -1,0 +1,16 @@
+{
+  "notes_root": "~/notes",
+  "output_dir": "output",
+  "projects": {
+    "quantum-dice": {
+      "path": "~/stuff/projects/quantum_dice",
+      "type": "game",
+      "active": true
+    }
+  },
+  "content_types": [
+    "devlog",
+    "blog",
+    "social"
+  ]
+}
