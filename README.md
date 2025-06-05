@@ -95,14 +95,18 @@ Common schemas, database models, analysis logic.
 git clone git@github.com:QRY91/doggowoof.git
 cd doggowoof
 
-# Install dependencies
-make install
+# Install the guard dog
+go install ./cmd/doggowoof
+ln -sf $(go env GOPATH)/bin/doggowoof $(go env GOPATH)/bin/doggo
 
-# Run development suite  
-make dev
+# Initialize and test
+doggo init
+doggo daemon start
+doggo status
 
-# Build all components
-make build
+# Start contributing!
+# Python daemon is in daemon/
+# Go CLI is in internal/cli/
 ```
 
 ## 🗺️ ROADMAP (THE TRAINING PLAN!)
