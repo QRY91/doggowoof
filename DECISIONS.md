@@ -5,7 +5,6 @@
 ---
 
 ## Decision #001: Webhook Daemon Language Choice
-**Date:** 2024-12-19  
 **Status:** DECIDED - Python first, port to Go later  
 
 ### Context
@@ -36,15 +35,16 @@ Need to build webhook receiver for monitoring GitHub, Uroboro, Cursor usage, etc
 - Want single binary deployment
 
 ### Implementation Plan
-1. Python daemon with FastAPI/Flask
-2. SQLite shared between Go CLI and Python daemon  
-3. Well-defined JSON schemas in `/shared`
+1. ~~Python daemon with FastAPI/Flask~~ **SHIPPED: Python stdlib only** (http.server)
+2. SQLite shared between Go CLI and Python daemon ✅
+3. ~~Well-defined JSON schemas in `/shared`~~ **SHIPPED: Direct webhook parsing**
 4. Port to Go once logic stabilizes (est. after 2-3 webhook sources working)
+
+**What we actually built:** Simple Python daemon using only stdlib - http.server, sqlite3, subprocess for notifications. Zero external dependencies. Much simpler than planned!
 
 ---
 
 ## Decision #002: Pet Command Implementation
-**Date:** 2024-12-19  
 **Status:** SHIPPED 🐕  
 
 ### Context
@@ -64,7 +64,6 @@ Hidden `doggo pet` command with random responses
 ---
 
 ## Decision #003: Northstar and Product Identity
-**Date:** 2024-12-19  
 **Status:** DECIDED - Core mission defined  
 
 ### Context
@@ -95,7 +94,6 @@ Need clear product identity to guide all future decisions and prevent scope cree
 ---
 
 ## Decision #004: MVP Success Criteria
-**Date:** 2024-12-19  
 **Status:** ACHIEVED - Core functionality working  
 
 ### Context
@@ -115,6 +113,32 @@ What constitutes a working MVP that validates the core concept?
 **Validates core hypothesis:** Can we catch real problems and filter noise locally?
 
 **Next validation:** Pattern learning - does it get smarter over time?
+
+---
+
+## Decision #005: Go Project Structure & Binary Management
+**Status:** SHIPPED - Proper Go layout with symlinks  
+
+### Context
+Started with Makefile approach copying binaries, but wanted both `doggowoof` and `doggo` commands like Uroboro's `uroboro`/`uro` pattern.
+
+### Decision
+**Proper Go project structure with symlink approach**
+
+### Reasoning
+**What we built:**
+- Moved CLI code from `cmd/` to `internal/cli/` (proper Go conventions)
+- Created `cmd/doggowoof/main.go` as proper entry point
+- Use `go install` + `ln -sf` for `doggo` symlink (like Uroboro)
+- No Makefile needed - pure Go workflow
+
+**Why this approach:**
+- Follows Go project standards exactly
+- Symlinks are cleaner than file copies
+- Matches established pattern from Uroboro
+- Easier for users: one install command + one symlink
+
+**Learning:** Started with Makefile thinking we needed it, but Go conventions + symlinks are much cleaner!
 
 ---
 
