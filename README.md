@@ -26,21 +26,30 @@ Your personal guard dog for development alerts. Smart, private, and LOUD when it
 ## 🚀 QUICK START (GET THAT TAIL WAGGING!)
 
 ```bash
-# Install your new best friend
-go install github.com/QRY91/doggowoof@latest
+# Install your guard dog (Go way!)
+go install github.com/QRY91/doggowoof/cmd/doggowoof@latest
+ln -sf $(go env GOPATH)/bin/doggowoof $(go env GOPATH)/bin/doggo
 
-# Initialize (creates config, DB, starts daemon)
+# Initialize your guard dog
 doggo init
 
-# Add alert sources (FEED THE DOGGO!)
-doggo watch --discord --webhook "https://discord.com/api/webhooks/..."
-doggo watch --github --repo "username/repo"
+# Start the daemon (your guard dog goes to work!)
+doggo daemon start
 
-# Train on your patterns (GOOD BOY LEARNS!)
-doggo train --from-resolved
-
-# Check what's happening (STATUS CHECK!)
+# Check what your guard dog is up to
 doggo status
+
+# Test with a GitHub CI failure webhook
+curl -X POST http://localhost:8080/webhook/github \
+  -H "Content-Type: application/json" \
+  -H "X-GitHub-Event: workflow_run" \
+  -d '{"action":"completed","workflow_run":{"name":"Tests","conclusion":"failure"},"repository":{"name":"your-repo"}}'
+
+# See the alert in your status report!
+doggo status
+
+# Pet the good doggo (secret command!)
+doggo pet
 ```
 
 ## 🎯 USE CASES (WHERE DOGGOWOOF SHINES!)
@@ -98,16 +107,21 @@ make build
 
 ## 🗺️ ROADMAP (THE TRAINING PLAN!)
 
+**MVP ACHIEVED! 🎉**
 - [x] Project genesis and architecture design
-- [x] Go CLI foundation with basic commands
-- [ ] Python daemon with webhook receiver
-- [ ] SQLite schema and data models
-- [ ] Svelte dashboard with real-time updates
-- [ ] Discord integration (WOOF AT DISCORD!)
-- [ ] GitHub integration (BARK AT BUGS!)
-- [ ] Local AI training pipeline (SMART DOGGO!)
-- [ ] Desktop notification system (LOUD WHEN NEEDED!)
-- [ ] Documentation and examples
+- [x] Go CLI foundation with complete commands (`init`, `daemon`, `status`, `pet`)
+- [x] Python daemon with webhook receiver (WORKING!)
+- [x] SQLite schema and data models (STORING ALERTS!)
+- [x] GitHub CI failure integration (BARKING AT BUGS!)
+- [x] Desktop notification system (LOUD WHEN NEEDED!)
+- [x] Local-first operation (YOUR DATA STAYS HOME!)
+
+**Next Phase - Pattern Learning:**
+- [ ] Alert acknowledgment tracking (learn what you care about)
+- [ ] Basic pattern recognition (remember your responses)
+- [ ] Smart filtering (reduce noise over time)
+- [ ] Uroboro integration (development workflow alerts)
+- [ ] Email/IMAP monitoring (critical service notifications)
 
 ## 📈 INSPIRATION (BRED FROM THE BEST!)
 
