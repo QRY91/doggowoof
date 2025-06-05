@@ -96,15 +96,17 @@ doggo watch --github username/repo
 
 ### ✅ Current Foundation (MVP Working)
 - GitHub CI failure detection working
-- Local SQLite storage
-- Simple webhook receiver
+- Local SQLite storage and basic metrics
+- Simple webhook receiver (localhost:8080)
+- Desktop notifications for alerts
 - Zero external dependencies
 - Secret pet command (critical feature! 🐕)
 
 ### 🎯 North Star Simplicity
-- 5 core commands: `init`, `watch`, `train`, `status`, `pet`
-- "Alert triage that learns what matters to YOU"
-- Invisible complexity, obvious value
+- Core commands working: `init`, `daemon`, `status`, `pet`
+- Coming soon: `watch`, `train` for pattern learning
+- Vision: "Alert triage that learns what matters to YOU"
+- Current: "Local-first alert filtering with personality"
 
 ## 🎨 Marketing Honesty Principle
 
@@ -112,12 +114,20 @@ doggo watch --github username/repo
 
 **Tone Standards**:
 - Enthusiastic but honest about being early-stage
-- "Learning your patterns" not "Revolutionary AI-powered"
-- "Smart filtering" not "Enterprise-grade intelligence platform"
+- "Working now" vs "Coming soon" clearly marked
+- "Basic filtering" not "Revolutionary AI-powered" 
+- "Pattern learning planned" not "Enterprise-grade intelligence platform"
 - "Local-first privacy" not "Military-grade security"
 - Dog metaphors are non-negotiable (it's our brand! 🐕)
 
-**Philosophy**: Build a tool that actually solves the problem. Let the enthusiasm show through personality, but deliver real value. Privacy-first isn't a marketing gimmick - it's core architecture.
+**Core Honesty Rules**:
+- ✅ Show what's actually working today
+- ✅ Be clear about what's planned vs delivered
+- ✅ Enthusiasm for the vision, honesty about the state
+- ❌ No marketing fluff or capability overselling
+- ❌ No AI buzzwords for basic functionality
+
+**Philosophy**: Build a tool that actually solves the problem. Let the enthusiasm show through personality, but deliver real value. Good dogs don't lie about what they can do.
 
 ## 🗺️ Roadmap Priorities
 

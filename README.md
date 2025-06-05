@@ -12,16 +12,19 @@ Your personal guard dog for development alerts. Smart, private, and LOUD when it
 
 **PHILOSOPHY**: Local-first, privacy-focused, ZERO BS monitoring with BIG ENERGY when alerts matter!
 
-## 🏗️ ARCHITECTURE (IT'S LOUD BUT ORGANIZED!)
+## 🏗️ ARCHITECTURE (MVP WORKING!)
 
 ```
-┌─ Go CLI ────────────┐    ┌─ Python Daemon ─────┐    ┌─ Svelte Dashboard ─┐
-│ • doggo init        │ ←→ │ • Webhook receiver  │ ←→ │ • Live monitoring  │
-│ • doggo daemon      │    │ • AI triage         │    │ • Training UI      │
-│ • doggo train       │    │ • SQLite storage    │    │ • Alert history    │
-│ • doggo status      │    │ • Desktop alerts    │    │ • Local only       │
-└─────────────────────┘    └─────────────────────┘    └────────────────────┘
+┌─ Go CLI ────────────┐    ┌─ Python Daemon ─────┐    
+│ • doggo init        │ ←→ │ • Webhook receiver  │
+│ • doggo daemon      │    │ • Basic filtering   │    
+│ • doggo status      │    │ • SQLite storage    │    
+│ • doggo pet         │    │ • Desktop alerts    │    
+└─────────────────────┘    └─────────────────────┘    
 ```
+
+**What's Working Now**: GitHub CI failure detection, local SQLite storage, desktop notifications  
+**What's Next**: Pattern learning, smart filtering, more integrations
 
 ## 🚀 QUICK START (GET THAT TAIL WAGGING!)
 
@@ -52,41 +55,41 @@ doggo status
 doggo pet
 ```
 
-## 🎯 USE CASES (WHERE DOGGOWOOF SHINES!)
+## 🎯 USE CASES (WHERE DOGGOWOOF IS LEARNING TO SHINE!)
 
-- **Solo Developers**: NO MORE MISSED DEPLOY FAILURES! 
-- **Small Teams**: SHARED ALERT INTELLIGENCE THAT ACTUALLY WORKS!
-- **DevOps**: INFRASTRUCTURE ALERTS WITH PERSONALITY!
-- **Researchers**: PUBLICATION ALERTS WITHOUT THE SPAM!
+- **Solo Developers**: GitHub CI failure detection (working now!)
+- **Local Development**: Basic webhook alerting (working now!)
+- **Future**: Smart filtering, team features, broader integrations
 
-## 🔧 INTEGRATION (PLAYS WELL WITH OTHERS!)
+## 🔧 INTEGRATION (GROWING PACK!)
 
-- **Discord**: Webhook monitoring with SMART FILTERING!
-- **GitHub**: Issue/PR/CI alert prioritization with ENERGY!
-- **Email**: IMAP monitoring for critical services!
-- **Webhooks**: Generic HTTP endpoint monitoring!
-- **Uroboro**: Cross-pollinate insights for content generation!
+**Working Now:**
+- **GitHub**: CI failure detection via webhooks
+- **Generic Webhooks**: Basic HTTP endpoint receiver
+
+**Coming Soon:**
+- **Uroboro**: Development workflow insights
+- **Email/IMAP**: Critical service monitoring
+- **Discord**: Alert routing
 
 ## 📊 LOCAL DATA (YOUR DATA STAYS HOME!)
 
 Everything stays on YOUR machine:
-- **SQLite database**: Alert history, training data
-- **Local AI models**: Pattern recognition, triage decisions  
-- **Privacy-first**: NO TELEMETRY, NO CLOUD DEPENDENCIES!
+- **SQLite database**: Alert history, basic metrics (working now!)
+- **Pattern learning**: Coming soon - will learn what you care about
+- **Privacy-first**: NO TELEMETRY, NO CLOUD DEPENDENCIES! (guaranteed!)
 
 ## 🎨 COMPONENTS (THE PACK!)
 
-### CLI (`cli/`) - THE QUIET COMPANION
-Go-based command interface. Fast, single binary deployment. Respectful Unix citizen.
+### CLI (`internal/cli/`) - THE QUIET COMPANION ✅
+Go-based command interface. Fast, single binary deployment. Working now!
 
-### Daemon (`daemon/`) - THE WORKING DOG
-Python background service. Webhook processing, AI analysis, LOUD notifications when needed.
+### Daemon (`daemon/`) - THE WORKING DOG ✅  
+Python background service. Webhook processing, basic filtering, desktop notifications. Working now!
 
-### Dashboard (`dashboard/`) - THE DOGGY DASHBOARD  
-Svelte web interface. Real-time monitoring, training, configuration. LOCAL ONLY!
-
-### Shared (`shared/`) - THE SHARED KNOWLEDGE
-Common schemas, database models, analysis logic.
+### Future Components 🔜
+- **Smart Filtering**: Pattern learning and intelligent triage
+- **Advanced Integrations**: More alert sources and routing options
 
 ## 🛠️ DEVELOPMENT (JOIN THE PACK!)
 
@@ -105,8 +108,9 @@ doggo daemon start
 doggo status
 
 # Start contributing!
-# Python daemon is in daemon/
-# Go CLI is in internal/cli/
+# Python daemon is in daemon/ (working webhook receiver)
+# Go CLI is in internal/cli/ (init, daemon, status, pet commands)
+# Next: Pattern learning and smart filtering
 ```
 
 ## 🗺️ ROADMAP (THE TRAINING PLAN!)
@@ -130,11 +134,11 @@ doggo status
 ## 📈 INSPIRATION (BRED FROM THE BEST!)
 
 Built from experience with:
-- **Logistics monitoring** (Mileviewer/Maersk scale - ENTERPRISE GRADE!)
-- **Project dashboards** (Panopticron internal tooling - BATTLE TESTED!)
-- **Developer workflows** (Uroboro content generation - PRODUCTIVITY FOCUSED!)
+- **Logistics monitoring** (Mileviewer/Maersk scale - learned what works at scale)
+- **Project dashboards** (Panopticron internal tooling - battle-tested approaches)
+- **Developer workflows** (Uroboro content generation - local-first privacy focus)
 
-**THE GOAL**: Bring enterprise-grade alert intelligence to individual developers with the enthusiasm of a VERY GOOD BOY! 🐕‍🦺
+**THE GOAL**: Bring proven alert intelligence patterns to individual developers with the enthusiasm of a VERY GOOD BOY! 🐕‍🦺
 
 ---
 
