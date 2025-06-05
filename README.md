@@ -113,7 +113,7 @@ doggo status
 
 **MVP ACHIEVED! 🎉**
 - [x] Project genesis and architecture design
-- [x] Go CLI foundation with complete commands (`init`, `daemon`, `status`, `pet`)
+- [x] Go CLI foundation with complete commands (`init`, `daemon`, `status`)
 - [x] Python daemon with webhook receiver (WORKING!)
 - [x] SQLite schema and data models (STORING ALERTS!)
 - [x] GitHub CI failure integration (BARKING AT BUGS!)
