@@ -4,7 +4,7 @@ This directory contains the favicon files for the DOGGOWOOF website.
 
 ## Files
 
-- `favicon.svg` - Primary bone-shaped favicon in SVG format
+- `apple-touch-icon.png` - Primary bone-shaped favicon in SVG format
 - `favicon.png` - Fallback bone-shaped favicon in PNG format
 
 ## Design
@@ -22,7 +22,7 @@ The HTML includes multiple favicon declarations for maximum compatibility:
 
 ```html
 <!-- Primary SVG favicon (modern browsers) -->
-<link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="./apple-touch-icon.png" type="image/svg+xml" />
 
 <!-- PNG fallback (older browsers) -->
 <link rel="icon" href="./favicon.png" type="image/png" />
