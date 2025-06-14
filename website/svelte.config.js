@@ -1,4 +1,4 @@
-import adapter from "@sveltejs/adapter-cloudflare";
+import adapter from "@sveltejs/adapter-static";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -9,12 +9,12 @@ const config = {
 
   kit: {
     adapter: adapter({
-      // Routes will be deployed as Functions by default
-      // Static assets will be served from the build directory
-      routes: {
-        include: ["/*"],
-        exclude: ["<build>/*"],
-      },
+      // Static adapter configuration for GitHub Pages
+      pages: "build",
+      assets: "build",
+      fallback: undefined,
+      precompress: false,
+      strict: true,
     }),
   },
 };
