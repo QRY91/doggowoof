@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"github.com/spf13/cobra"
 )
 
 var petResponses = []string{
@@ -26,32 +24,18 @@ var petResponses = []string{
 	"*does a little dance* This is almost as good as finding a REAL bug in production! 💃🐕",
 }
 
-// petCmd represents the secret pet command
-var petCmd = &cobra.Command{
-	Use:    "pet",
-	Short:  "🐕 Pet the good doggo (secret command!)",
-	Long:   `Give your faithful guard dog some well-deserved pets! Everyone needs appreciation for keeping those alerts in line.`,
-	Hidden: true, // This makes it a secret command!
-	Run: func(cmd *cobra.Command, args []string) {
-		// Seed random generator
-		rand.Seed(time.Now().UnixNano())
+// RunPet displays a random pet response. Hidden command, not shown in help.
+func RunPet() {
+	response := petResponses[rand.Intn(len(petResponses))]
 
-		// Pick a random response
-		response := petResponses[rand.Intn(len(petResponses))]
+	fmt.Println()
+	fmt.Println(response)
+	fmt.Println()
 
+	// 10% chance of secret extra response
+	if rand.Float32() < 0.1 {
+		time.Sleep(500 * time.Millisecond)
+		fmt.Println("🐕 *whispers* Between you and me... I think that alert from 3 hours ago wasn't that important anyway. Good thing I didn't wake you up! 🤫")
 		fmt.Println()
-		fmt.Println(response)
-		fmt.Println()
-
-		// Extra special response if they pet multiple times quickly
-		if rand.Float32() < 0.1 { // 10% chance
-			time.Sleep(500 * time.Millisecond)
-			fmt.Println("🐕 *whispers* Between you and me... I think that alert from 3 hours ago wasn't that important anyway. Good thing I didn't wake you up! 🤫")
-			fmt.Println()
-		}
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(petCmd)
+	}
 }

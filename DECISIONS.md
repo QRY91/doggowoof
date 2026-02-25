@@ -1,145 +1,157 @@
-# DOGGOWOOF ARCHITECTURAL DECISIONS 🚨🐕🚨
+# DOGGOWOOF ARCHITECTURAL DECISIONS
 
 *A log of key technical decisions and their reasoning*
 
 ---
 
 ## Decision #001: Webhook Daemon Language Choice
-**Status:** DECIDED - Python first, port to Go later  
+**Status:** SUPERSEDED by #006
 
 ### Context
 Need to build webhook receiver for monitoring GitHub, Uroboro, Cursor usage, etc. Two options:
-1. Build everything in Go for consistency 
+1. Build everything in Go for consistency
 2. Build webhook daemon in Python first, port later
 
 ### Decision
 **Python first, port to Go after core logic is stable**
 
-### Reasoning
-**Why Python first:**
-- **Iteration speed** - Webhook parsing logic will need tuning
-- **Rich ecosystem** - Flask/FastAPI, great JSON handling
-- **Testing flexibility** - Easy to mock different webhook formats
-- **Notification libraries** - Desktop notifications, email parsing
-- **Lower stakes** - Daemon can crash/restart without affecting CLI
-
-**Why not Go immediately:**
-- Webhook logic unknown complexity - better to prototype
-- Different notification strategies need testing
-- JSON schema evolution likely as we add sources
-
-**Port to Go when:**
-- Core webhook patterns established
-- Notification strategies proven
-- Performance becomes important
-- Want single binary deployment
-
-### Implementation Plan
-1. ~~Python daemon with FastAPI/Flask~~ **SHIPPED: Python stdlib only** (http.server)
-2. SQLite shared between Go CLI and Python daemon ✅
-3. ~~Well-defined JSON schemas in `/shared`~~ **SHIPPED: Direct webhook parsing**
-4. Port to Go once logic stabilizes (est. after 2-3 webhook sources working)
-
-**What we actually built:** Simple Python daemon using only stdlib - http.server, sqlite3, subprocess for notifications. Zero external dependencies. Much simpler than planned!
+### What we actually built
+Simple Python daemon using only stdlib - http.server, sqlite3, subprocess for notifications. Zero external dependencies.
 
 ---
 
 ## Decision #002: Pet Command Implementation
-**Status:** SHIPPED 🐕  
-
-### Context
-Need secret easter egg command for user delight
+**Status:** PRESERVED
 
 ### Decision
 Hidden `doggo pet` command with random responses
 
-### Reasoning
-- User engagement and delight
-- Hidden from help but discoverable
-- Fits brand personality perfectly
-- Zero operational impact
-
-**Result:** Users can pet the doggo and get random wholesome responses!
+### Result
+15 wholesome responses + 10% secret message. Ported from Cobra to standalone function. All responses preserved verbatim.
 
 ---
 
 ## Decision #003: Northstar and Product Identity
-**Status:** DECIDED - Core mission defined  
+**Status:** SUPERSEDED by #007
 
-### Context
-Need clear product identity to guide all future decisions and prevent scope creep.
+### Original Decision
+"Stop alert fatigue from breaking solodevs" - Local-first intelligent alert triage
 
-### Decision
-**"Stop alert fatigue from breaking solodevs"** - Local-first intelligent alert triage
-
-### Reasoning
-**Why this mission:**
-- **Focused scope** - Solves ONE real problem really well
-- **Clear market** - Solo developers drowning in notifications  
-- **Unique position** - Local-first learning vs cloud dashboards
-- **Measurable success** - Did we save you from missing something important?
-
-**Philosophy alignment with Uroboro:**
-- Local-first, privacy-focused
-- Simple core workflow (not feature bloat)
-- Solves "information overwhelm" (different domain)
-- Honest marketing, real value
-
-**Brand identity:**
-- Guard dog metaphors (enthusiastic but focused)
-- WOOF energy with smart filtering
-- Privacy as core architecture, not marketing
-- Anti-buzzword: "learning patterns" not "AI-powered"
+### Updated
+Pivoted to OSINT coordination detection companion for osmotic.
 
 ---
 
 ## Decision #004: MVP Success Criteria
-**Status:** ACHIEVED - Core functionality working  
+**Status:** ACHIEVED (v0.1.0), SUPERSEDED
 
-### Context
-What constitutes a working MVP that validates the core concept?
-
-### Decision
-**GitHub CI failure detection with local learning storage**
-
-### Reasoning
-**MVP requirements met:**
-- ✅ Receives real alerts (GitHub webhooks)
-- ✅ Stores locally (SQLite, zero cloud)
-- ✅ Smart filtering (CI failures = HIGH priority)
-- ✅ Desktop notifications (actual alerting)
-- ✅ Zero dependencies (Python stdlib only)
-
-**Validates core hypothesis:** Can we catch real problems and filter noise locally?
-
-**Next validation:** Pattern learning - does it get smarter over time?
+### Original Criteria
+GitHub CI failure detection with local learning storage — achieved.
 
 ---
 
 ## Decision #005: Go Project Structure & Binary Management
-**Status:** SHIPPED - Proper Go layout with symlinks  
-
-### Context
-Started with Makefile approach copying binaries, but wanted both `doggowoof` and `doggo` commands like Uroboro's `uroboro`/`uro` pattern.
+**Status:** PRESERVED
 
 ### Decision
-**Proper Go project structure with symlink approach**
-
-### Reasoning
-**What we built:**
-- Moved CLI code from `cmd/` to `internal/cli/` (proper Go conventions)
-- Created `cmd/doggowoof/main.go` as proper entry point
-- Use `go install` + `ln -sf` for `doggo` symlink (like Uroboro)
-- No Makefile needed - pure Go workflow
-
-**Why this approach:**
-- Follows Go project standards exactly
-- Symlinks are cleaner than file copies
-- Matches established pattern from Uroboro
-- Easier for users: one install command + one symlink
-
-**Learning:** Started with Makefile thinking we needed it, but Go conventions + symlinks are much cleaner!
+Proper Go layout: `cmd/doggowoof/main.go`, `internal/cli/`, `pkg/`. Symlink `doggo` -> `doggowoof`.
 
 ---
 
-*🐕 Keep this updated as we make architectural choices! Future you will thank present you! 🐕* 
+## Decision #006: Pivot from CI Alert Triage to OSINT Detection
+**Status:** DECIDED — February 2026
+
+### Context
+DoggoWoof v0.1.0 was a CI alert triage tool with Python webhook daemon. Osmotic needed a companion for detecting coordinated inauthentic behavior in collected OSINT data.
+
+### Decision
+**Full rewrite as osmotic's detection companion**
+
+### Reasoning
+- Osmotic collects and analyzes public content, but has no coordination detection
+- DoggoWoof's guard dog metaphor fits perfectly for "watching" data for threats
+- Read-only consumer pattern keeps concerns cleanly separated
+- Reuses osmotic's patterns (config, store, CLI) for consistency
+- Python daemon was unused; webhook-based approach wasn't getting traction
+
+### What changed
+- Removed: Python daemon, Cobra CLI, webhook receiver, GitHub CI integration
+- Added: osmotic DB reader, temporal clustering, behavior profiling, coordination scoring
+- Preserved: pet command, beeep notifications, guard dog identity, Go project structure
+
+---
+
+## Decision #007: Mission Pivot
+**Status:** DECIDED
+
+### Decision
+From "stop alert fatigue from breaking solodevs" to "guard dog for OSINT data integrity — detect coordinated inauthentic behavior"
+
+### Reasoning
+Better alignment with osmotic ecosystem. Clearer value proposition. Unique capability (no other local-first coordination detection tool exists).
+
+---
+
+## Decision #008: Raw os.Args over Cobra
+**Status:** DECIDED
+
+### Decision
+Replace Cobra with raw `os.Args` switch dispatcher
+
+### Reasoning
+DoggoWoof has 5 commands. Cobra brought 14 transitive dependencies for command routing we don't need. os.Args matches osmotic's pattern and is simpler to maintain.
+
+### What we gained
+Removed: spf13/cobra, spf13/viper, spf13/pflag, spf13/afero, spf13/cast, fsnotify, hcl, mapstructure, locafero, slog-shim, conc, gotenv, ini.v1, yaml.v3, go-sqlite3 (CGO)
+
+---
+
+## Decision #009: Pure Go SQLite (modernc.org/sqlite) over CGO (mattn/go-sqlite3)
+**Status:** DECIDED
+
+### Decision
+Switch from `mattn/go-sqlite3` (requires CGO) to `modernc.org/sqlite` (pure Go)
+
+### Reasoning
+Matches osmotic's choice. Enables `CGO_ENABLED=0` builds. Cross-compiles cleanly. No C compiler needed. Aligns with permacomputing principle of minimal dependencies.
+
+---
+
+## Decision #010: TOML Config over Viper/YAML
+**Status:** DECIDED
+
+### Decision
+Single TOML config file via `BurntSushi/toml` instead of Viper with YAML
+
+### Reasoning
+Matches osmotic's config approach. TOML is human-readable and well-supported. One dependency instead of Viper's dependency tree. Config file at `~/.config/doggowoof/config.toml`.
+
+---
+
+## Decision #011: Deep Bore as Go-native Log Tailer
+**Status:** DECIDED — February 2026
+
+### Context
+PLAN_DEEPBORE_MONITORING.md originally specified a Python webhook daemon to tail bridge logs and POST events to doggowoof. By the time implementation started, all Python/daemon/webhook code had been removed. The project was pure Go CLI.
+
+### Decision
+**Go-native log tailer with direct SQLite writes, no webhooks**
+
+### Reasoning
+- Python daemon and webhook handlers no longer exist — nothing to hook into
+- Direct SQLite writes eliminate the HTTP middleman
+- Keeps the project as a single Go binary
+- `doggo bore --watch` is the first long-running process in the codebase — simpler architecture means fewer failure modes
+- Ticker-based poll (1s) over fsnotify — zero dependencies, handles log rotation naturally
+
+### What was built
+- `pkg/deepbore/parser.go` — regex-based log event parser (10 event types, priority ordering)
+- `pkg/deepbore/integrity.go` — SHA-256 binary checksumming, agent config validation
+- `pkg/deepbore/tailer.go` — watch loop with three tickers (poll, binary, config)
+- `internal/cli/bore.go` — `doggo bore` status display and `--watch` mode
+- `deepbore_sessions` table in alerts.sqlite for mutable session state
+- `[deepbore]` config section with all monitoring parameters
+
+---
+
+*Keep this updated as we make architectural choices. Future you will thank present you.*
