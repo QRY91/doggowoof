@@ -17,7 +17,7 @@ import (
 func RunBore(args []string) {
 	flags := parseFlags(args)
 
-	stores, err := LoadConfigAndAlerts()
+	stores, err := LoadStores()
 	if err != nil {
 		fatalf("Error: %v", err)
 	}

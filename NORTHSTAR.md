@@ -1,112 +1,106 @@
 # DOGGOWOOF North Star
 
-**Last updated**: February 2026
+**Last updated**: April 2026
 
 ## The One Problem We Solve
 
-**Guard dog for OSINT data integrity and autonomous agent safety.**
+**Local-first observability for autonomous AI agents.**
 
-Watch osmotic's collected data for suspicious patterns: temporal clustering, behavioral uniformity, coordination signals. Alert when public information flows show signs of manipulation. Watch autonomous AI agents for sandbox violations, self-modification, and integrity failures.
+Watch agent log streams, binaries, and configs. Detect sandbox violations, self-modification, integrity drift, and config regressions. Alert loud and local when something matters; stay quiet otherwise.
 
 ## Focus Guardrails
 
 ### Always Yes
-- Read osmotic's data and detect coordination patterns
-- Profile account behavior across sources
-- Monitor autonomous agents for safety violations
-- Alert loud on high-confidence findings
-- Keep everything private and local-first
-- Maintain clear read-only boundary with monitored systems
+- Read agent logs and detect safety violations
+- Checksum monitored binaries and alert on drift
+- Validate agent sandbox configs
+- Surface alerts via desktop notification + SQLite-backed history
+- Maintain a clean read-only boundary with monitored systems
+- Stay a single Go binary, no daemons, no cloud
 
 ### Always No Until Core Is Perfect
-- Writing to osmotic's database or modifying monitored systems (read-only, always)
-- LLM-powered analysis (that's osmotic's job)
-- Cloud services, APIs, or SaaS features
-- Team collaboration or multi-user features
-- Complex dashboards
+- Modifying the monitored system in any way (read-only, always)
+- Cloud services, APIs, telemetry, accounts
+- LLM-powered analysis (other tools in the ecosystem can layer on top)
+- Multi-user features or team dashboards
+- Webhooks (we tail; we don't receive HTTP)
 
 ## The Guard Dog Standard
 
 **"Good dogs stay alert, bark at real threats, ignore squirrels."**
 
 - **Local-first over cloud-dependent** — your data stays home
-- **Detection over collection** — osmotic collects, we detect
+- **Observation over participation** — we read, we don't intervene
 - **Precision over noise** — fewer, higher-quality alerts
-- **Privacy over features** — no telemetry, no cloud dependencies
-- **Read-only over read-write** — we never modify source data
+- **Privacy over features** — no telemetry, no exfiltration
+- **Subtraction over accumulation** — every feature must earn its keep
 
 ## Success Metric
 
-**"Did DoggoWoof find something real this week?"**
+**"Did doggowoof catch something the user wouldn't have noticed?"**
 
-Secondary metrics:
-- False positive rate decreasing over time
-- Detection accuracy improving with more data
-- Zero writes to osmotic's database (enforced by PRAGMA query_only)
+Secondary:
+- Zero false-positive notifications in a typical session
+- Cursor persistence works across restarts
+- Watch mode runs indefinitely without leaks or drift
 
-## Core Workflows
+## Core Workflow
 
-### OSINT Coordination Detection
 ```bash
-osmotic collect                              # 1. osmotic collects data
-doggo sniff                                  # 2. doggowoof sniffs for patterns
-doggo status                                 # 3. review findings
-doggo alerts --ack=42                        # 4. acknowledge or investigate
-osmotic deep --entity="Suspicious Account"
-```
-
-### Deep Bore Agent Monitoring
-```bash
-doggo bore --watch    # watch bridge logs (run alongside agent session)
-doggo bore            # check session status from another terminal
-doggo alerts          # review agent-related alerts
+doggo bore --watch     # run alongside an agent session (terminal A)
+doggo bore             # check status anytime (terminal B)
+doggo alerts           # review what was caught
+doggo alerts --ack=42  # acknowledge handled findings
 ```
 
 ## Anti-Feature-Creep Rules
 
 Before adding anything:
-1. **Does this improve detection accuracy?**
-2. **Does it maintain read-only access to osmotic?**
-3. **Does this keep data local and private?**
-4. **Would an investigative journalist want this?**
+1. **Does this catch a real failure mode in real agent systems?**
+2. **Does it preserve read-only observation?**
+3. **Does it work fully offline?**
+4. **Would it have caught the Deep Bore self-modification incident?**
 
 ## Marketing Honesty Principle
 
 Underpromise, overdeliver.
 
-- "Detects temporal clusters" not "AI-powered threat intelligence"
-- "Profiles posting patterns" not "Advanced behavioral analytics platform"
-- "Local SQLite" not "Enterprise-grade data warehouse"
+- "Tails agent logs and barks" not "AI-powered safety platform"
+- "SHA-256 binary integrity" not "Cryptographic supply-chain security"
+- "Local SQLite" not "Enterprise observability backend"
 - Dog metaphors remain non-negotiable
 
 ## Roadmap
 
-### Phase 1: Detection Foundation (complete)
-- Temporal clustering detection
-- Account behavior profiling
-- Combined coordination scoring
-- Alert management (list, acknowledge)
-- Desktop notifications for high/critical
-- Deep Bore agent monitoring (log tailing, sandbox violation detection, binary integrity, config validation)
+### Phase 1: Agent Observability Foundation (complete)
+- Log tailing with regex-based event parsing
+- Sandbox violation detection (forbidden tool calls)
+- Self-modification detection (build commands inside tool calls)
+- Binary SHA-256 integrity checking
+- Agent config validation (sandbox + disallowedTools)
+- Session state tracking (task progress, cost, turns)
+- Cursor persistence + log rotation handling
+- Desktop notifications for critical/high
 
-### Phase 2: Refinement
-- Historical pattern tracking (clusters that persist across runs)
-- Improved topic extraction (leverage osmotic's analysis passes)
-- Alert deduplication and merging
-- Configurable alert thresholds per source
+### Phase 2: Sharper signal
+- Configurable rule profiles (multiple watch targets per install)
+- Cost spike detection (alert when a task burns more than expected)
+- Token-budget tracking
+- Better dedup for repeat broadcasts
 
-### Phase 3: Advanced Detection
-- Network analysis (who replies to whom)
-- Narrative tracking (same talking points across accounts)
-- Anomaly detection (accounts that change behavior suddenly)
-- Cross-source coordination (same patterns across reddit + hn + rss)
+### Phase 3: Ecosystem integration
+- uroboro integration: watch capture stream for stale blockers, undeclared decisions
+- Generic file/log watcher mode (define rules in TOML, point at any log)
+- Optional cross-tool alert routing
 
-## Relationship to Osmotic
+## Place in the QRY Ecosystem
 
-**Complementary, not competing:**
-- **Osmotic**: Collects, normalizes, analyzes, publishes
-- **DoggoWoof**: Reads osmotic data, detects coordination, alerts. Watches agents.
+doggowoof is the **alerting / observability layer** in a small set of personally-built tools:
 
-**Shared philosophy**: Local-first, privacy-focused, durable outputs, minimal dependencies.
+- **uroboro** — context capture (decisions, blockers, questions)
+- **osmotic** — OSINT collection and analysis
+- **miqro** — local voice transcription
+- **doggowoof** — watching layer; barks when patterns appear
+- **openclaw** — sandbox for AI assistant experimentation
 
-**Integration points**: osmotic.sqlite (read-only), bridge logs (tail-only). The file system IS the API. Dog watches. Dog does not touch.
+Each tool is a deliberately scoped exercise in AI integration. doggowoof's exercise is: **agent safety observability without participating in the agent.**

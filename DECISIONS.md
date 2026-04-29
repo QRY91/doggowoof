@@ -154,4 +154,40 @@ PLAN_DEEPBORE_MONITORING.md originally specified a Python webhook daemon to tail
 
 ---
 
+## Decision #012: Drop OSINT/osmotic integration; refocus as AI agent observability tool
+**Status:** DECIDED — April 2026
+
+### Context
+Three identities had accumulated in the codebase:
+1. v0.1 CI alert triage (already removed)
+2. v0.2 OSINT coordination detection companion to osmotic
+3. v0.3 Deep Bore agent monitoring (just shipped)
+
+The README and NORTHSTAR pretended (2) and (3) were equal first-class features. In practice, osmotic is immature and the coupling didn't earn its keep. The Deep Bore work — sandbox violation detection, binary integrity, agent config validation — is the legitimate identity.
+
+### Decision
+**Subtract the OSINT surface entirely. Reposition doggowoof as a local-first AI agent observability tool.**
+
+### What was removed
+- `pkg/osmotic/` — read-only osmotic SQLite reader
+- `pkg/detect/` — temporal clustering, behavior profiling, coordination scoring
+- `internal/cli/sniff.go` — the `doggo sniff` command
+- `[osmotic]` and `[thresholds]` config sections
+- `Stores.Osmotic` field; `LoadConfigAndStores` (collapsed into `LoadStores`)
+- All osmotic-aware language from README and NORTHSTAR
+
+### What was kept
+- The alerts table schema (still used by Deep Bore)
+- Profile/cluster CRUD methods on the alerts store (idempotent migrations, dead but harmless)
+- `pet`, `init`, `status`, `alerts` commands
+- All Deep Bore code (`pkg/deepbore/`, `internal/cli/bore.go`)
+
+### Reasoning
+- osmotic is in early development; coupling to it was premature
+- AI agent observability is a legitimate, portfolio-legible identity (relevant to the user's day job in AI integrations)
+- Subtraction is cheaper than rewriting — the Deep Bore code already does the right thing
+- The QRY ecosystem (uroboro, osmotic, miqro, doggowoof) is more coherent when each tool has a single clear job
+
+---
+
 *Keep this updated as we make architectural choices. Future you will thank present you.*

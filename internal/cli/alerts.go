@@ -10,7 +10,7 @@ import (
 func RunAlerts(args []string) {
 	flags := parseFlags(args)
 
-	stores, err := LoadConfigAndStores()
+	stores, err := LoadStores()
 	if err != nil {
 		fatalf("Error: %v", err)
 	}
@@ -49,7 +49,7 @@ func RunAlerts(args []string) {
 		if severity != "" {
 			fmt.Printf("No %s alerts found.\n", severity)
 		} else {
-			fmt.Println("No alerts found. Run 'doggo sniff' to start detection.")
+			fmt.Println("No alerts found. Run 'doggo bore --watch' to start monitoring.")
 		}
 		return
 	}

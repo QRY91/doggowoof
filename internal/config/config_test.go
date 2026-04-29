@@ -9,20 +9,8 @@ import (
 func TestDefaultConfig(t *testing.T) {
 	cfg := DefaultConfig()
 
-	if cfg.Osmotic.DatabasePath == "" {
-		t.Error("expected default osmotic database path")
-	}
 	if cfg.Alerts.DatabasePath == "" {
 		t.Error("expected default alerts database path")
-	}
-	if cfg.Thresholds.CoordinationScore != 0.7 {
-		t.Errorf("expected coordination score 0.7, got %f", cfg.Thresholds.CoordinationScore)
-	}
-	if cfg.Thresholds.TemporalClusterWindowMinutes != 5 {
-		t.Errorf("expected temporal window 5, got %d", cfg.Thresholds.TemporalClusterWindowMinutes)
-	}
-	if cfg.Thresholds.TemporalClusterMinAccounts != 3 {
-		t.Errorf("expected min accounts 3, got %d", cfg.Thresholds.TemporalClusterMinAccounts)
 	}
 	if !cfg.Notifications.Enabled {
 		t.Error("expected notifications enabled by default")
@@ -99,7 +87,7 @@ func TestInitAndLoad(t *testing.T) {
 		t.Fatalf("Load() failed: %v", err)
 	}
 
-	if cfg.Thresholds.CoordinationScore != 0.7 {
-		t.Errorf("expected default coordination score after load")
+	if cfg.Alerts.DatabasePath == "" {
+		t.Errorf("expected alerts database path after load")
 	}
 }

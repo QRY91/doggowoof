@@ -11,28 +11,14 @@ import (
 
 // Config is the top-level configuration for doggowoof.
 type Config struct {
-	Osmotic       OsmoticConfig       `toml:"osmotic"`
 	Alerts        AlertsConfig        `toml:"alerts"`
-	Thresholds    ThresholdsConfig    `toml:"thresholds"`
 	Notifications NotificationsConfig `toml:"notifications"`
 	DeepBore      DeepBoreConfig      `toml:"deepbore"`
-}
-
-// OsmoticConfig points to osmotic's database (read-only).
-type OsmoticConfig struct {
-	DatabasePath string `toml:"database_path"`
 }
 
 // AlertsConfig holds the path to doggowoof's own database.
 type AlertsConfig struct {
 	DatabasePath string `toml:"database_path"`
-}
-
-// ThresholdsConfig holds detection sensitivity settings.
-type ThresholdsConfig struct {
-	CoordinationScore            float64 `toml:"coordination_score"`
-	TemporalClusterWindowMinutes int     `toml:"temporal_cluster_window_minutes"`
-	TemporalClusterMinAccounts   int     `toml:"temporal_cluster_min_accounts"`
 }
 
 // NotificationsConfig holds notification preferences.
@@ -57,16 +43,8 @@ type DeepBoreConfig struct {
 // DefaultConfig returns the default configuration.
 func DefaultConfig() *Config {
 	return &Config{
-		Osmotic: OsmoticConfig{
-			DatabasePath: "~/.local/share/osmotic/osmotic.sqlite",
-		},
 		Alerts: AlertsConfig{
 			DatabasePath: "~/.local/share/doggowoof/alerts.sqlite",
-		},
-		Thresholds: ThresholdsConfig{
-			CoordinationScore:            0.7,
-			TemporalClusterWindowMinutes: 5,
-			TemporalClusterMinAccounts:   3,
 		},
 		Notifications: NotificationsConfig{
 			Enabled: true,
@@ -133,7 +111,6 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("parsing config: %w", err)
 	}
 
-	cfg.Osmotic.DatabasePath = ExpandPath(cfg.Osmotic.DatabasePath)
 	cfg.Alerts.DatabasePath = ExpandPath(cfg.Alerts.DatabasePath)
 	cfg.DeepBore.LogDirectory = ExpandPath(cfg.DeepBore.LogDirectory)
 	cfg.DeepBore.BinaryPath = ExpandPath(cfg.DeepBore.BinaryPath)

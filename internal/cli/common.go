@@ -8,14 +8,12 @@ import (
 
 	"github.com/QRY91/doggowoof/internal/config"
 	"github.com/QRY91/doggowoof/pkg/alerts"
-	"github.com/QRY91/doggowoof/pkg/osmotic"
 )
 
-// Stores holds the config, osmotic reader, and alerts store.
+// Stores holds the config and alerts store.
 type Stores struct {
-	Config  *config.Config
-	Osmotic *osmotic.Reader
-	Alerts  *alerts.Store
+	Config *config.Config
+	Alerts *alerts.Store
 }
 
 // LoadConfig loads just the config file.
@@ -23,34 +21,8 @@ func LoadConfig() (*config.Config, error) {
 	return config.Load()
 }
 
-// LoadConfigAndStores opens the config, osmotic reader (read-only), and alerts store.
-func LoadConfigAndStores() (*Stores, error) {
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	osmoticReader, err := osmotic.NewReader(cfg.Osmotic.DatabasePath)
-	if err != nil {
-		return nil, fmt.Errorf("opening osmotic database: %w", err)
-	}
-
-	alertsStore, err := alerts.New(cfg.Alerts.DatabasePath)
-	if err != nil {
-		osmoticReader.Close()
-		return nil, fmt.Errorf("opening alerts database: %w", err)
-	}
-
-	return &Stores{
-		Config:  cfg,
-		Osmotic: osmoticReader,
-		Alerts:  alertsStore,
-	}, nil
-}
-
-// LoadConfigAndAlerts opens the config and alerts store only (no osmotic).
-// Used by commands that don't need osmotic data (e.g., bore).
-func LoadConfigAndAlerts() (*Stores, error) {
+// LoadStores opens the config and alerts store.
+func LoadStores() (*Stores, error) {
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, err
@@ -69,9 +41,6 @@ func LoadConfigAndAlerts() (*Stores, error) {
 
 // Close closes all open database connections.
 func (s *Stores) Close() {
-	if s.Osmotic != nil {
-		s.Osmotic.Close()
-	}
 	if s.Alerts != nil {
 		s.Alerts.Close()
 	}

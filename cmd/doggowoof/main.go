@@ -21,8 +21,6 @@ func main() {
 	switch os.Args[1] {
 	case "init":
 		cli.RunInit()
-	case "sniff":
-		cli.RunSniff(os.Args[2:])
 	case "status":
 		cli.RunStatus(os.Args[2:])
 	case "alerts":
@@ -43,23 +41,18 @@ func main() {
 }
 
 func printHelp() {
-	fmt.Println(`doggowoof — OSINT coordination detection companion
+	fmt.Println(`doggowoof — local-first AI agent observability
 
 Usage:
   doggo init                              Create config and alerts database
-  doggo sniff [--source=X] [--detect=X] [--days=N]  Run detection heuristics
-  doggo status                            Show dashboard (osmotic data + alerts)
-  doggo alerts [--severity=X] [--ack=ID]  List or acknowledge alerts
+  doggo status                            Show dashboard (active session + alerts)
   doggo bore                              Deep Bore agent monitoring status
   doggo bore --watch                      Watch bridge logs (long-running)
+  doggo alerts [--severity=X] [--ack=ID]  List or acknowledge alerts
   doggo help                              Show this help
   doggo version                           Show version
 
-Detection heuristics (--detect):
-  temporal       Temporal clustering (accounts posting together)
-  behavior       Behavior profiling (posting pattern analysis)
-  coordination   Combined coordination scoring (default: all)
-
-Guard dog for osmotic's OSINT data. Detects coordinated inauthentic behavior.
-Also watches Doug so you don't have to.`)
+Watches autonomous AI agents for sandbox violations, self-modification,
+binary integrity changes, and config drift. Local-only, SQLite-backed,
+desktop notifications when something matters. Good dog watches Doug.`)
 }

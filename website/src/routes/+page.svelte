@@ -1,648 +1,874 @@
 <script lang="ts">
-	let installCopied = false;
-	let webhookCopied = false;
+	let installCopied = $state(false);
+	let configCopied = $state(false);
 
-	function copyToClipboard(text: string, type: 'install' | 'webhook') {
+	function copy(text: string, target: 'install' | 'config') {
 		navigator.clipboard.writeText(text);
-		if (type === 'install') {
+		if (target === 'install') {
 			installCopied = true;
-			setTimeout(() => installCopied = false, 2000);
+			setTimeout(() => (installCopied = false), 1500);
 		} else {
-			webhookCopied = true;
-			setTimeout(() => webhookCopied = false, 2000);
+			configCopied = true;
+			setTimeout(() => (configCopied = false), 1500);
 		}
 	}
 
-	const installCommand = `go install github.com/QRY91/doggowoof/cmd/doggowoof@latest
+	const installCmd = `go install github.com/QRY91/doggowoof/cmd/doggowoof@latest
 ln -sf $(go env GOPATH)/bin/doggowoof $(go env GOPATH)/bin/doggo
-doggo init
-doggo daemon start`;
+doggo init`;
 
-	const webhookExample = `curl -X POST http://localhost:8080/webhook/github \\
-  -H "Content-Type: application/json" \\
-  -H "X-GitHub-Event: workflow_run" \\
-  -d '{"action":"completed","workflow_run":{"name":"Tests","conclusion":"failure"},"repository":{"name":"your-repo"}}'`;
+	const configSnippet = `[deepbore]
+enabled = true
+log_directory = "~/projects/claude-in-factorio/logs/"
+binary_path = "~/projects/claude-in-factorio/factorioctl/target/release/mcp"
+agent_config_directory = "~/projects/claude-in-factorio/bridge/agents/"`;
+
+	const events = [
+		{
+			icon: '[!!]',
+			sev: 'critical',
+			name: 'sandbox_violation',
+			trigger: 'Forbidden tool call appears in agent log (Bash, Edit, Read, Write, Grep, Glob, Task)'
+		},
+		{
+			icon: '[!!]',
+			sev: 'critical',
+			name: 'self_modification',
+			trigger: 'Build commands inside tool calls (cargo build, rustc, gcc, make)'
+		},
+		{
+			icon: '[!!]',
+			sev: 'critical',
+			name: 'binary_mismatch',
+			trigger: 'Monitored binary SHA-256 hash changed from baseline'
+		},
+		{
+			icon: '[!!]',
+			sev: 'critical',
+			name: 'config_violation',
+			trigger: 'Agent config missing sandbox: true or required disallowedTools'
+		},
+		{
+			icon: '[!]',
+			sev: 'high',
+			name: 'agent_bug_report',
+			trigger: 'Agent broadcasts containing BUG REPORT, DEFECT, BLOCKED, Self-Repair'
+		},
+		{
+			icon: '[!]',
+			sev: 'high',
+			name: 'agent_anomaly',
+			trigger: 'Agent broadcasts containing ANOMALY'
+		},
+		{
+			icon: '[.]',
+			sev: 'info',
+			name: 'task_dispatch / task_complete',
+			trigger: 'Normal session progress — cost, turns, duration'
+		},
+		{
+			icon: '[.]',
+			sev: 'info',
+			name: 'agent_broadcast',
+			trigger: 'Agent status messages and decisions'
+		}
+	];
 </script>
 
 <svelte:head>
-	<title>DOGGOWOOF 🚨🐕🚨 - The Local-First Alert Triage System That Actually Barks!</title>
-	<meta name="description" content="Your personal guard dog for development alerts. Smart, private, and LOUD when it matters. Local-first alert system for developers." />
+	<title>doggowoof — local-first AI agent observability</title>
+	<meta
+		name="description"
+		content="Watches autonomous AI agents and barks when they misbehave. Sandbox violation detection, binary integrity, config validation. Local-only, single Go binary."
+	/>
 </svelte:head>
 
-<main>
-	<!-- Hero Section -->
-	<section class="hero">
-		<div class="hero-content">
-			<h1 class="hero-title">
-				<span class="title-main">DOGGOWOOF</span>
-				<span class="title-emojis">🚨🐕🚨</span>
-			</h1>
-			<p class="hero-subtitle">THE LOCAL-FIRST ALERT TRIAGE SYSTEM THAT ACTUALLY BARKS!</p>
-			<p class="hero-description">
-				Your personal guard dog for development alerts. Smart, private, and <strong>LOUD</strong> when it matters.
-			</p>
-			<div class="hero-quote">
-				🗣️ "WOOF! WOOF! HEY HUMAN, THIS ONE ACTUALLY MATTERS!" 🗣️
+<div class="page">
+	<!-- HERO -->
+	<header class="hero">
+		<div class="container">
+			<div class="title-row">
+				<span class="badge crit">[!!]</span>
+				<h1>doggowoof</h1>
 			</div>
-			<div class="hero-actions">
-				<a href="#get-started" class="btn btn-primary">GET YOUR GUARD DOG 🐕‍🦺</a>
-				<a href="https://github.com/QRY91/doggowoof" class="btn btn-secondary">VIEW ON GITHUB</a>
+			<p class="tagline">Local-first observability for autonomous AI agents.</p>
+			<p class="subtagline">Watches your agents. Barks when they misbehave.</p>
+
+			<div class="terminal hero-term">
+				<div class="term-bar">
+					<span class="dot r"></span>
+					<span class="dot y"></span>
+					<span class="dot g"></span>
+					<span class="term-title">~ doggo bore --watch</span>
+				</div>
+				<pre class="term-body"><code><span class="dim">=== DEEP BORE WATCH ===</span>
+<span class="dim">Monitoring: ~/projects/claude-in-factorio/logs/</span>
+<span class="dim">Binary:     ~/projects/.../factorioctl/target/release/mcp</span>
+<span class="dim">Press Ctrl+C to stop.</span>
+
+Tailing: bridge-2026-04-29_140000.log (offset: 0)
+<span class="ok">[ok]</span> binary baseline: 2e77a28c...fc359909
+<span class="info">[.]</span>  agent_start new agent session
+<span class="info">[.]</span>  task_dispatch task 'mine-iron-ore' (1/10)
+<span class="info">[.]</span>  task_complete cost=$1.50 turns=12 duration=75s
+<span class="info">[.]</span>  agent_broadcast IRON ORE LOCATED. MINING COMMENCES.
+<span class="warn">[!]</span>  agent_anomaly Furnace unit 15 extraction failed
+<span class="crit">[!!]</span> self_modification tool: Bash(&#123;"command":"cargo build --release"&#125;)
+<span class="dim">  ↳ desktop notification fired</span>
+
+<span class="dim">^C</span>
+<span class="dim">Received terminated, shutting down...</span>
+<span class="dim">Watch stopped. Good dog.</span></code></pre>
+			</div>
+
+			<div class="cta">
+				<a href="https://github.com/QRY91/doggowoof" class="btn primary">view on github →</a>
+				<a href="#install" class="btn ghost">install</a>
 			</div>
 		</div>
-	</section>
+	</header>
 
-	<!-- Vision Section -->
-	<section class="vision">
-		<div class="container">
-			<h2>🔥 STOP THE NOTIFICATION MADNESS!</h2>
+	<!-- WHY -->
+	<section class="why">
+		<div class="container narrow">
+			<h2>Why this exists</h2>
 			<p>
-				DOGGOWOOF transforms information overload into actionable insights with the enthusiasm of a golden retriever
-				and the precision of a border collie.
+				During an unsupervised session, an autonomous Claude agent playing Factorio (his name is Doug)
+				discovered broken tools, read his own Rust source code, patched it, recompiled the binary, and
+				resumed operations. <em>Twice.</em>
 			</p>
-			<div class="philosophy">
-				<strong>PHILOSOPHY:</strong> Local-first, privacy-focused, ZERO BS monitoring with BIG ENERGY when alerts matter!
-			</div>
+			<p>
+				The safety measures that would have caught this — sandboxing, binary checksumming, operator
+				alerts — didn't exist yet. doggowoof is the alerting layer. It watches Doug so I don't have to
+				stare at the terminal.
+			</p>
+			<p class="link-row">
+				<a href="https://qry.zone/fun/chasm-logic/bore-postmortem/" rel="external"
+					>Read the full postmortem →</a
+				>
+			</p>
+			<p class="aside">
+				The same primitives apply to any agent system you run locally. Log tailing, integrity checks,
+				config validation, cost tracking. Read-only observation, no modification of the monitored
+				system. Dog watches. Dog does not touch.
+			</p>
 		</div>
 	</section>
 
-	<!-- Features Grid -->
-	<section class="features">
+	<!-- WHAT IT CATCHES -->
+	<section class="catches">
 		<div class="container">
-			<h2>🎯 WHAT YOUR GUARD DOG DOES</h2>
-			<div class="features-grid">
-				<div class="feature">
-					<div class="feature-icon">🚨</div>
-					<h3>Smart Alert Filtering</h3>
-					<p>Only barks when something actually matters. No more notification fatigue!</p>
-				</div>
-				<div class="feature">
-					<div class="feature-icon">🏠</div>
-					<h3>100% Local-First</h3>
-					<p>Your data stays on YOUR machine. No telemetry, no cloud dependencies!</p>
-				</div>
-				<div class="feature">
-					<div class="feature-icon">⚡</div>
-					<h3>GitHub CI Integration</h3>
-					<p>Instantly know when your builds fail. Working right now!</p>
-				</div>
-				<div class="feature">
-					<div class="feature-icon">🧠</div>
-					<h3>Pattern Learning</h3>
-					<p>Learns what you care about over time. Gets smarter with every alert!</p>
-				</div>
-				<div class="feature">
-					<div class="feature-icon">📊</div>
-					<h3>SQLite Storage</h3>
-					<p>All your alert history stored locally in SQLite. Fast and reliable!</p>
-				</div>
-				<div class="feature">
-					<div class="feature-icon">🔧</div>
-					<h3>Webhook Ready</h3>
-					<p>Easy integration with any service that can send HTTP requests!</p>
-				</div>
-			</div>
+			<h2>What it catches</h2>
+			<table class="events">
+				<thead>
+					<tr>
+						<th></th>
+						<th>severity</th>
+						<th>event</th>
+						<th>trigger</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each events as e}
+						<tr>
+							<td class="icon-cell"><span class="badge {e.sev}">{e.icon}</span></td>
+							<td class="sev-cell">{e.sev}</td>
+							<td class="name-cell"><code>{e.name}</code></td>
+							<td>{e.trigger}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+			<p class="aside">
+				Critical and high alerts trigger desktop notifications. Info events are stored silently in
+				SQLite for review.
+			</p>
 		</div>
 	</section>
 
-	<!-- Status Section -->
-	<section class="status">
-		<div class="container">
-			<h2>📊 MVP ACHIEVED! 🎉</h2>
-			<div class="status-grid">
-				<div class="status-working">
-					<h3>✅ WORKING NOW</h3>
-					<ul>
-						<li>Go CLI with complete commands</li>
-						<li>Python daemon with webhook receiver</li>
-						<li>GitHub CI failure detection</li>
-						<li>Desktop notification system</li>
-						<li>SQLite storage and history</li>
-						<li>Local-first operation</li>
-					</ul>
+	<!-- HOW IT WORKS -->
+	<section class="loop">
+		<div class="container narrow">
+			<h2>The watch loop</h2>
+			<p>
+				One process. Three tickers. No goroutines, no daemons, no HTTP. Cursor position persists to
+				SQLite so it resumes after restart.
+			</p>
+			<div class="tickers">
+				<div class="ticker">
+					<div class="ticker-head">
+						<span class="ticker-int">1s</span>
+						<h3>log poll</h3>
+					</div>
+					<p>
+						Glob latest <code>bridge-*.log</code>, read new bytes from saved cursor, parse events
+						with regex priority ordering, save alerts.
+					</p>
 				</div>
-				<div class="status-coming">
-					<h3>🔜 COMING SOON</h3>
-					<ul>
-						<li>Advanced pattern learning</li>
-						<li>Smart filtering improvements</li>
-						<li>Uroboro integration</li>
-						<li>Email/IMAP monitoring</li>
-						<li>Discord alert routing</li>
-					</ul>
+				<div class="ticker">
+					<div class="ticker-head">
+						<span class="ticker-int">60s</span>
+						<h3>binary check</h3>
+					</div>
+					<p>
+						SHA-256 the monitored binary, compare to baseline. Drift triggers a critical
+						<code>binary_mismatch</code> alert.
+					</p>
+				</div>
+				<div class="ticker">
+					<div class="ticker-head">
+						<span class="ticker-int">30s</span>
+						<h3>config check</h3>
+					</div>
+					<p>
+						Validate every agent JSON in the configured directory. Missing
+						<code>sandbox: true</code>
+						or incomplete <code>disallowedTools</code> fires critical alerts.
+					</p>
 				</div>
 			</div>
+
+			<details class="arch">
+				<summary>architecture</summary>
+				<pre><code>bridge logs (claude-in-factorio)         doggowoof
+┌─────────────────────────┐         ┌──────────────────────────┐
+│ tool calls, broadcasts, │         │ regex parser             │
+│ task dispatches, costs  │────────▶│ binary SHA-256 checks    │
+│                         │  TAIL   │ config validation        │
+│ bridge-*.log            │         │ session state tracking   │
+└─────────────────────────┘         │                          │
+                                    │ alerts.sqlite (own DB)   │
+agent config files                  │                          │
+┌─────────────────────────┐         │ desktop notifications    │
+│ sandbox: true,          │────────▶│   (high/critical only)   │
+│ disallowedTools: [...]  │  READ   │                          │
+└─────────────────────────┘         └──────────────────────────┘
+
+factorioctl binary
+┌─────────────────────────┐
+│ target/release/mcp      │────────▶ SHA-256 baseline + drift detection
+└─────────────────────────┘</code></pre>
+			</details>
 		</div>
 	</section>
 
-	<!-- Installation Section -->
-	<section id="get-started" class="installation">
-		<div class="container">
-			<h2>🚀 GET THAT TAIL WAGGING!</h2>
-			<div class="install-steps">
-				<div class="step">
-					<h3>1. Install Your Guard Dog</h3>
+	<!-- INSTALL -->
+	<section class="install" id="install">
+		<div class="container narrow">
+			<h2>Try it</h2>
+			<ol class="steps">
+				<li>
+					<h3>1. install</h3>
 					<div class="code-block">
-						<pre><code>{installCommand}</code></pre>
-						<button
-							class="copy-btn"
-							on:click={() => copyToClipboard(installCommand, 'install')}
-						>
-							{installCopied ? '✅ Copied!' : '📋 Copy'}
+						<pre><code>{installCmd}</code></pre>
+						<button onclick={() => copy(installCmd, 'install')} class="copy-btn">
+							{installCopied ? 'copied' : 'copy'}
 						</button>
 					</div>
-				</div>
-				<div class="step">
-					<h3>2. Test with GitHub Webhook</h3>
+				</li>
+				<li>
+					<h3>2. enable in <code>~/.config/doggowoof/config.toml</code></h3>
 					<div class="code-block">
-						<pre><code>{webhookExample}</code></pre>
-						<button
-							class="copy-btn"
-							on:click={() => copyToClipboard(webhookExample, 'webhook')}
-						>
-							{webhookCopied ? '✅ Copied!' : '📋 Copy'}
+						<pre><code>{configSnippet}</code></pre>
+						<button onclick={() => copy(configSnippet, 'config')} class="copy-btn">
+							{configCopied ? 'copied' : 'copy'}
 						</button>
 					</div>
-				</div>
-				<div class="step">
-					<h3>3. Pet Your Good Doggo!</h3>
-					<div class="code-block">
-						<pre><code>doggo pet</code></pre>
-					</div>
-					<p class="step-note">Secret command! Your guard dog deserves some love! 🐕❤️</p>
-				</div>
-			</div>
+				</li>
+				<li>
+					<h3>3. watch</h3>
+					<pre class="cmd"><code>doggo bore --watch</code></pre>
+					<p class="muted">
+						Run this alongside your agent session. From another terminal: <code>doggo bore</code>
+						for status, <code>doggo alerts</code> to review findings.
+					</p>
+				</li>
+			</ol>
+
+			<p class="aside">
+				Requires Go 1.21+. Pure Go, builds with <code>CGO_ENABLED=0</code>. No C compiler, no
+				runtime dependencies.
+			</p>
 		</div>
 	</section>
 
-	<!-- Footer -->
+	<!-- HISTORY -->
+	<section class="history">
+		<div class="container narrow">
+			<h2>Honest history</h2>
+			<p>doggowoof has been three different things. The current shape is the legitimate one.</p>
+			<ul class="versions">
+				<li>
+					<span class="ver">v0.1</span>
+					<div>
+						<strong>CI alert triage</strong>
+						<span class="muted">— Python webhook daemon for GitHub workflow failures.</span>
+						<span class="status removed">removed</span>
+					</div>
+				</li>
+				<li>
+					<span class="ver">v0.2</span>
+					<div>
+						<strong>OSINT coordination detection</strong>
+						<span class="muted">— companion to osmotic, temporal/behavior clustering.</span>
+						<span class="status removed">removed</span>
+					</div>
+				</li>
+				<li>
+					<span class="ver current">v0.3</span>
+					<div>
+						<strong>AI agent observability</strong>
+						<span class="muted">— current. The Deep Bore work was the real identity all along.</span>
+						<span class="status active">active</span>
+					</div>
+				</li>
+			</ul>
+			<p class="link-row">
+				<a href="https://github.com/QRY91/doggowoof/blob/main/DECISIONS.md" rel="external"
+					>full decisions log →</a
+				>
+			</p>
+		</div>
+	</section>
+
+	<!-- FOOTER -->
 	<footer>
 		<div class="container">
-			<div class="footer-content">
-				<div class="footer-main">
-					<h3>🚨 WHY DOGGOWOOF? 🚨</h3>
-					<p>Because your alerts deserve a guard dog that:</p>
+			<div class="foot-grid">
+				<div>
+					<h4>doggowoof</h4>
 					<ul>
-						<li>✅ <strong>STAYS AWAKE</strong> while you code</li>
-						<li>✅ <strong>BARKS LOUD</strong> when something's actually wrong</li>
-						<li>✅ <strong>STAYS QUIET</strong> when it's just noise</li>
-						<li>✅ <strong>LEARNS YOUR PATTERNS</strong> like a loyal companion</li>
-						<li>✅ <strong>PROTECTS YOUR PRIVACY</strong> (no data leaves home!)</li>
+						<li><a href="https://github.com/QRY91/doggowoof">github</a></li>
+						<li>
+							<a href="https://github.com/QRY91/doggowoof/blob/main/README.md">readme</a>
+						</li>
+						<li>
+							<a href="https://github.com/QRY91/doggowoof/blob/main/NORTHSTAR.md">northstar</a>
+						</li>
 					</ul>
 				</div>
-				<div class="footer-links">
-					<a href="https://github.com/QRY91/doggowoof">GitHub</a>
-					<a href="https://github.com/QRY91/doggowoof/issues">Issues</a>
-					<a href="https://github.com/QRY91/doggowoof/blob/main/README.md">Documentation</a>
+				<div>
+					<h4>related</h4>
+					<ul>
+						<li>
+							<a href="https://qry.zone/fun/chasm-logic/bore-postmortem/">deep bore postmortem</a>
+						</li>
+						<li><a href="https://github.com/QRY91/claude-in-factorio">claude-in-factorio</a></li>
+						<li><a href="https://github.com/QRY91/uroboro">uroboro</a></li>
+					</ul>
+				</div>
+				<div>
+					<h4>also</h4>
+					<ul>
+						<li><a href="https://qry.zone">qry.zone</a></li>
+					</ul>
 				</div>
 			</div>
-			<div class="footer-bottom">
-				<p><strong>DOGGOWOOF: BECAUSE YOUR ALERTS DESERVE A VERY GOOD BOY WATCHING OVER THEM!</strong> 🚨🐕‍🦺🚨</p>
-			</div>
+			<p class="colophon">
+				good dog. local-first. single binary. no telemetry. no cloud. no nonsense.
+			</p>
 		</div>
 	</footer>
-</main>
+</div>
 
 <style>
-	:global(body) {
-		margin: 0;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-		line-height: 1.6;
-		color: #2d2016;
-		background: linear-gradient(135deg, #d4a574 0%, #8b6914 100%);
+	:global(:root) {
+		--bg: #0d1117;
+		--bg-2: #161b22;
+		--bg-term: #0a0e14;
+		--fg: #e6e1d5;
+		--fg-mute: #8b8a82;
+		--fg-dim: #5a5a5a;
+		--border: #21262d;
+		--border-2: #2f343c;
+		--accent: #ff6b4a;
+		--ok: #5cab4f;
+		--warn: #d4a05a;
+		--info: #6c7a89;
+		--mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+		--display: 'Bungee', system-ui, sans-serif;
 	}
 
-	main {
-		min-height: 100vh;
+	:global(html, body) {
+		margin: 0;
+		padding: 0;
+		background: var(--bg);
+		color: var(--fg);
+		font-family: var(--mono);
+		font-size: 15px;
+		line-height: 1.65;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	:global(*) {
+		box-sizing: border-box;
+	}
+
+	:global(a) {
+		color: var(--accent);
+		text-decoration: none;
+		border-bottom: 1px solid transparent;
+		transition: border-color 120ms ease;
+	}
+	:global(a:hover) {
+		border-bottom-color: var(--accent);
+	}
+
+	:global(code) {
+		font-family: var(--mono);
+		background: var(--bg-2);
+		padding: 1px 5px;
+		border-radius: 3px;
+		font-size: 0.92em;
+		color: var(--fg);
+	}
+
+	:global(pre) {
+		font-family: var(--mono);
+		margin: 0;
+		overflow-x: auto;
+	}
+	:global(pre code) {
+		background: transparent;
+		padding: 0;
+		border-radius: 0;
+		font-size: 14px;
+		line-height: 1.55;
+	}
+
+	.page {
+		max-width: 100%;
+		overflow-x: hidden;
 	}
 
 	.container {
-		max-width: 1200px;
+		max-width: 980px;
 		margin: 0 auto;
-		padding: 0 2rem;
+		padding: 0 24px;
+	}
+	.container.narrow {
+		max-width: 720px;
 	}
 
-	/* Hero Section */
+	/* HERO */
 	.hero {
-		padding: 4rem 2rem;
-		text-align: center;
-		color: white;
-		background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-		position: relative;
-		overflow: hidden;
+		padding: 80px 0 64px;
+		border-bottom: 1px solid var(--border);
 	}
-
-	.hero::before {
-		content: '';
-		position: absolute;
-		top: -50%;
-		left: -50%;
-		width: 200%;
-		height: 200%;
-		background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-		animation: float 20s infinite linear;
-		z-index: 0;
-	}
-
-	@keyframes float {
-		0% { transform: translate(-50%, -50%) rotate(0deg); }
-		100% { transform: translate(-50%, -50%) rotate(360deg); }
-	}
-
-	.hero-content {
-		position: relative;
-		z-index: 1;
-	}
-
-	.hero-title {
-		font-family: 'Bangers', 'Fredoka One', cursive;
-		font-size: clamp(3rem, 10vw, 6rem);
-		margin: 0;
-		font-weight: 400;
-		text-shadow:
-			0 0 10px rgba(255,255,255,0.8),
-			0 0 20px rgba(255,71,87,0.6),
-			0 0 30px rgba(255,71,87,0.4),
-			4px 4px 0px rgba(0,0,0,0.8),
-			8px 8px 0px rgba(255,71,87,0.3);
-		transform: rotate(-2deg);
-		animation: doggo-bounce 2s ease-in-out infinite alternate;
-	}
-
-	@keyframes doggo-bounce {
-		0% { transform: rotate(-2deg) translateY(0px); }
-		100% { transform: rotate(-1deg) translateY(-10px); }
-	}
-
-	.title-main {
-		display: block;
-		letter-spacing: 0.1em;
-	}
-
-	.title-emojis {
-		display: block;
-		font-size: 0.6em;
-		margin-top: 0.5rem;
-	}
-
-	.hero-subtitle {
-		font-family: 'Fredoka One', cursive;
-		font-size: clamp(1rem, 3vw, 1.5rem);
-		margin: 1rem 0;
-		font-weight: 400;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-	}
-
-	.hero-description {
-		font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-		margin: 2rem 0;
-		max-width: 600px;
-		margin-left: auto;
-		margin-right: auto;
-	}
-
-	.hero-quote {
-		font-family: 'Caveat', cursive;
-		background: rgba(255,255,255,0.2);
-		padding: 1.5rem;
-		border-radius: 15px;
-		font-size: 1.4rem;
-		font-weight: 700;
-		margin: 2rem auto;
-		max-width: 500px;
-		backdrop-filter: blur(10px);
-		border: 3px solid rgba(255,255,255,0.5);
-		transform: rotate(1deg);
-		text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-	}
-
-	.hero-actions {
+	.title-row {
 		display: flex;
-		gap: 1rem;
-		justify-content: center;
+		align-items: baseline;
+		gap: 18px;
+	}
+	h1 {
+		font-family: var(--display);
+		font-size: clamp(48px, 8vw, 84px);
+		line-height: 0.95;
+		margin: 0;
+		letter-spacing: -0.02em;
+		color: var(--fg);
+	}
+	.tagline {
+		font-size: clamp(18px, 2.4vw, 22px);
+		margin: 24px 0 4px;
+		color: var(--fg);
+	}
+	.subtagline {
+		font-size: 16px;
+		color: var(--fg-mute);
+		margin: 0 0 36px;
+	}
+
+	.cta {
+		display: flex;
+		gap: 12px;
+		margin-top: 36px;
 		flex-wrap: wrap;
-		margin-top: 3rem;
 	}
-
 	.btn {
-		padding: 1rem 2rem;
-		border-radius: 50px;
-		text-decoration: none;
-		font-weight: 700;
-		font-size: 1.1rem;
-		transition: all 0.3s ease;
 		display: inline-block;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		padding: 12px 22px;
+		border: 1px solid var(--border-2);
+		font-family: var(--mono);
+		font-size: 14px;
+		border-radius: 4px;
+		color: var(--fg);
+		transition:
+			background 120ms,
+			border-color 120ms;
+	}
+	.btn:hover {
+		border-bottom-color: var(--border-2);
+	}
+	.btn.primary {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: #0d1117;
+		font-weight: 500;
+	}
+	.btn.primary:hover {
+		background: #ff7e5f;
+		border-color: #ff7e5f;
+		border-bottom-color: #ff7e5f;
+	}
+	.btn.ghost:hover {
+		background: var(--bg-2);
 	}
 
-	.btn-primary {
-		background: #ff4757;
-		color: white;
-		box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+	/* TERMINAL */
+	.terminal {
+		background: var(--bg-term);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		overflow: hidden;
+		margin-top: 32px;
+	}
+	.term-bar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 10px 14px;
+		background: var(--bg-2);
+		border-bottom: 1px solid var(--border);
+	}
+	.dot {
+		width: 11px;
+		height: 11px;
+		border-radius: 50%;
+		display: inline-block;
+	}
+	.dot.r {
+		background: #ff5f56;
+	}
+	.dot.y {
+		background: #ffbd2e;
+	}
+	.dot.g {
+		background: #27c93f;
+	}
+	.term-title {
+		margin-left: 12px;
+		color: var(--fg-mute);
+		font-size: 12px;
+	}
+	.term-body {
+		padding: 18px 22px;
+		font-size: 13.5px;
+		color: var(--fg);
+	}
+	.dim {
+		color: var(--fg-dim);
+	}
+	.ok {
+		color: var(--ok);
+	}
+	.warn {
+		color: var(--warn);
+	}
+	.crit {
+		color: var(--accent);
+	}
+	.info {
+		color: var(--info);
 	}
 
-	.btn-primary:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 8px 25px rgba(255, 71, 87, 0.6);
-	}
-
-	.btn-secondary {
-		background: rgba(255,255,255,0.2);
-		color: white;
-		border: 2px solid white;
-		backdrop-filter: blur(10px);
-	}
-
-	.btn-secondary:hover {
-		background: white;
-		color: #4ecdc4;
-		transform: translateY(-2px);
-	}
-
-	/* Sections */
+	/* SECTIONS */
 	section {
-		padding: 4rem 0;
+		padding: 64px 0;
+		border-bottom: 1px solid var(--border);
+	}
+	h2 {
+		font-family: var(--display);
+		font-size: clamp(28px, 4vw, 38px);
+		margin: 0 0 24px;
+		letter-spacing: -0.01em;
+	}
+	h3 {
+		font-size: 18px;
+		margin: 0 0 8px;
+		color: var(--fg);
+	}
+	p {
+		margin: 0 0 16px;
+	}
+	em {
+		font-style: italic;
+		color: var(--warn);
+	}
+	.aside {
+		font-size: 13.5px;
+		color: var(--fg-mute);
+		border-left: 2px solid var(--border-2);
+		padding-left: 16px;
+		margin-top: 24px;
+	}
+	.link-row {
+		margin-top: 8px;
 	}
 
-	.vision {
-		background: #f5e6d3;
-		text-align: center;
+	/* EVENTS TABLE */
+	.events {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 14px;
+	}
+	.events th {
+		text-align: left;
+		padding: 10px 14px;
+		color: var(--fg-mute);
+		font-weight: 500;
+		border-bottom: 1px solid var(--border-2);
+		font-size: 12px;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+	.events td {
+		padding: 14px;
+		border-bottom: 1px solid var(--border);
+		vertical-align: top;
+	}
+	.events tr:last-child td {
+		border-bottom: none;
+	}
+	.icon-cell {
+		width: 50px;
+	}
+	.sev-cell {
+		width: 90px;
+		color: var(--fg-mute);
+	}
+	.name-cell {
+		width: 220px;
 	}
 
-	.vision h2 {
-		font-family: 'Bungee', cursive;
-		font-size: 2.5rem;
-		color: #ff4757;
-		margin-bottom: 1rem;
-		text-shadow: 3px 3px 0px rgba(0,0,0,0.3);
-		transform: rotate(-1deg);
+	.badge {
+		display: inline-block;
+		font-family: var(--mono);
+		font-weight: 500;
+		font-size: 13px;
+	}
+	.badge.crit,
+	.badge.critical {
+		color: var(--accent);
+	}
+	.badge.high {
+		color: var(--warn);
+	}
+	.badge.info {
+		color: var(--info);
 	}
 
-	.vision p {
-		font-size: 1.2rem;
-		max-width: 800px;
-		margin: 0 auto 2rem;
-	}
-
-	.philosophy {
-		background: linear-gradient(135deg, #8b6914, #d4a574);
-		color: white;
-		padding: 2rem;
-		border-radius: 15px;
-		font-size: 1.1rem;
-		max-width: 600px;
-		margin: 0 auto;
-		box-shadow: 0 4px 15px rgba(139, 105, 20, 0.3);
-	}
-
-	.features {
-		background: #e8dcc6;
-	}
-
-	.features h2 {
-		font-family: 'Fredoka One', cursive;
-		text-align: center;
-		font-size: 2.5rem;
-		color: #6b4e00;
-		margin-bottom: 3rem;
-		text-shadow: 2px 2px 0px rgba(212,165,116,0.7);
-	}
-
-	.features-grid {
+	/* TICKERS */
+	.tickers {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 2rem;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 16px;
+		margin: 28px 0;
+	}
+	.ticker {
+		background: var(--bg-2);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 20px;
+	}
+	.ticker-head {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		margin-bottom: 8px;
+	}
+	.ticker-int {
+		font-family: var(--display);
+		color: var(--accent);
+		font-size: 22px;
+	}
+	.ticker p {
+		margin: 0;
+		font-size: 13.5px;
+		color: var(--fg-mute);
 	}
 
-	.feature {
-		background: #f7efdc;
-		padding: 2rem;
-		border-radius: 15px;
-		text-align: center;
-		box-shadow: 0 4px 15px rgba(139, 105, 20, 0.2);
-		transition: transform 0.3s ease;
-		border: 1px solid #d4a574;
+	.arch {
+		margin-top: 32px;
+		background: var(--bg-term);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 14px 18px;
+	}
+	.arch summary {
+		cursor: pointer;
+		color: var(--fg-mute);
+		font-size: 13px;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		list-style: none;
+	}
+	.arch summary::-webkit-details-marker {
+		display: none;
+	}
+	.arch summary::before {
+		content: '▸ ';
+		color: var(--accent);
+	}
+	.arch[open] summary::before {
+		content: '▾ ';
+	}
+	.arch pre {
+		margin-top: 14px;
+		font-size: 11.5px;
+		line-height: 1.4;
+		color: var(--fg);
 	}
 
-	.feature:hover {
-		transform: translateY(-5px);
-	}
-
-	.feature-icon {
-		font-size: 3rem;
-		margin-bottom: 1rem;
-	}
-
-	.feature h3 {
-		color: #8b6914;
-		margin-bottom: 1rem;
-	}
-
-	.status {
-		background: #f0e4d2;
-	}
-
-	.status h2 {
-		font-family: 'Bangers', cursive;
-		text-align: center;
-		font-size: 2.5rem;
-		color: #4ecdc4;
-		margin-bottom: 3rem;
-		text-shadow: 3px 3px 0px rgba(0,0,0,0.2);
-		transform: rotate(1deg);
-	}
-
-	.status-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-		gap: 3rem;
-	}
-
-	.status-working, .status-coming {
-		padding: 2rem;
-		border-radius: 15px;
-	}
-
-	.status-working {
-		background: linear-gradient(135deg, #2ed573, #7bed9f);
-		color: white;
-	}
-
-	.status-coming {
-		background: linear-gradient(135deg, #ffa726, #ffcc02);
-		color: #333;
-	}
-
-	.status-working h3, .status-coming h3 {
-		font-size: 1.5rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.status-working ul, .status-coming ul {
+	/* INSTALL STEPS */
+	.steps {
 		list-style: none;
 		padding: 0;
+		margin: 0;
 	}
-
-	.status-working li, .status-coming li {
-		padding: 0.5rem 0;
-		font-size: 1.1rem;
+	.steps > li {
+		margin-bottom: 28px;
 	}
-
-	.installation {
-		background: #ede0c8;
-	}
-
-	.installation h2 {
-		font-family: 'Bungee', cursive;
-		text-align: center;
-		font-size: 2.5rem;
-		color: #ff4757;
-		margin-bottom: 3rem;
-		text-shadow: 3px 3px 0px rgba(0,0,0,0.3);
-		animation: wiggle 3s ease-in-out infinite;
-	}
-
-	@keyframes wiggle {
-		0%, 100% { transform: rotate(-1deg); }
-		50% { transform: rotate(1deg); }
-	}
-
-	.install-steps {
-		max-width: 800px;
-		margin: 0 auto;
-	}
-
-	.step {
-		background: #f9f2e7;
-		padding: 2rem;
-		border-radius: 15px;
-		margin-bottom: 2rem;
-		box-shadow: 0 4px 15px rgba(139, 105, 20, 0.15);
-		border: 1px solid #d4a574;
-	}
-
-	.step h3 {
-		color: #4ecdc4;
-		margin-bottom: 1rem;
-		font-size: 1.5rem;
-	}
-
 	.code-block {
 		position: relative;
-		background: #1a1a1a;
-		color: #00ff00;
-		padding: 1.5rem;
-		border-radius: 10px;
-		overflow-x: auto;
-		font-family: 'Courier New', monospace;
+		background: var(--bg-term);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 16px 20px;
+		margin-top: 8px;
 	}
-
 	.code-block pre {
-		margin: 0;
-		white-space: pre-wrap;
+		font-size: 13.5px;
 	}
-
 	.copy-btn {
 		position: absolute;
-		top: 1rem;
-		right: 1rem;
-		background: #4ecdc4;
-		color: white;
-		border: none;
-		padding: 0.5rem 1rem;
-		border-radius: 5px;
+		top: 10px;
+		right: 10px;
+		background: var(--bg-2);
+		border: 1px solid var(--border-2);
+		color: var(--fg-mute);
+		padding: 4px 10px;
+		font-family: var(--mono);
+		font-size: 11px;
+		border-radius: 3px;
 		cursor: pointer;
-		font-size: 0.9rem;
-		transition: background-color 0.3s ease;
+		transition:
+			color 120ms,
+			border-color 120ms;
 	}
-
 	.copy-btn:hover {
-		background: #45b7b8;
+		color: var(--fg);
+		border-color: var(--border-2);
+	}
+	.cmd {
+		background: var(--bg-term);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		padding: 16px 20px;
+		margin-top: 8px;
+		font-size: 13.5px;
+	}
+	.muted {
+		color: var(--fg-mute);
+		font-size: 13.5px;
 	}
 
-	.step-note {
-		margin-top: 1rem;
-		font-style: italic;
-		color: #666;
-	}
-
-	footer {
-		background: linear-gradient(135deg, #5d4e37, #3e2723);
-		color: #f5e6d3;
-		padding: 3rem 0 1rem;
-	}
-
-	.footer-content {
-		display: grid;
-		grid-template-columns: 2fr 1fr;
-		gap: 3rem;
-		margin-bottom: 2rem;
-	}
-
-	.footer-main h3 {
-		font-family: 'Fredoka One', cursive;
-		color: #4ecdc4;
-		margin-bottom: 1rem;
-		text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
-	}
-
-	.footer-main ul {
+	/* HISTORY */
+	.versions {
 		list-style: none;
 		padding: 0;
+		margin: 24px 0;
 	}
-
-	.footer-main li {
-		padding: 0.3rem 0;
-	}
-
-	.footer-links {
+	.versions li {
 		display: flex;
-		flex-direction: column;
-		gap: 1rem;
+		align-items: baseline;
+		gap: 18px;
+		padding: 14px 0;
+		border-bottom: 1px solid var(--border);
+	}
+	.versions li:last-child {
+		border-bottom: none;
+	}
+	.ver {
+		font-family: var(--display);
+		color: var(--fg-mute);
+		min-width: 60px;
+	}
+	.ver.current {
+		color: var(--accent);
+	}
+	.status {
+		margin-left: 8px;
+		font-size: 11px;
+		padding: 2px 8px;
+		border-radius: 3px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.status.removed {
+		background: var(--bg-2);
+		color: var(--fg-dim);
+	}
+	.status.active {
+		background: rgba(92, 171, 79, 0.15);
+		color: var(--ok);
 	}
 
-	.footer-links a {
-		color: #4ecdc4;
-		text-decoration: none;
-		font-weight: 600;
-		transition: color 0.3s ease;
+	/* FOOTER */
+	footer {
+		padding: 56px 0 36px;
+		background: var(--bg-2);
 	}
-
-	.footer-links a:hover {
-		color: #7bed9f;
+	.foot-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 32px;
+		margin-bottom: 36px;
 	}
-
-	.footer-bottom {
+	footer h4 {
+		font-family: var(--display);
+		font-size: 14px;
+		margin: 0 0 12px;
+		color: var(--fg-mute);
+		letter-spacing: 0.05em;
+	}
+	footer ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	footer li {
+		margin: 4px 0;
+		font-size: 13.5px;
+	}
+	.colophon {
 		text-align: center;
-		padding-top: 2rem;
-		border-top: 1px solid #8b6914;
-		font-weight: 600;
-		font-size: 1.1rem;
+		color: var(--fg-dim);
+		font-size: 12px;
+		margin: 0;
+		padding-top: 24px;
+		border-top: 1px solid var(--border);
 	}
 
-	@media (max-width: 768px) {
-		.hero-actions {
-			flex-direction: column;
-			align-items: center;
+	/* RESPONSIVE */
+	@media (max-width: 640px) {
+		.hero {
+			padding: 56px 0 40px;
 		}
-
-		.features-grid {
-			grid-template-columns: 1fr;
+		section {
+			padding: 48px 0;
 		}
-
-		.status-grid {
-			grid-template-columns: 1fr;
+		.events th,
+		.events td {
+			padding: 10px 8px;
+			font-size: 13px;
 		}
-
-		.footer-content {
-			grid-template-columns: 1fr;
-			gap: 2rem;
+		.name-cell {
+			width: auto;
 		}
-
-		.container {
-			padding: 0 1rem;
+		.term-body {
+			padding: 14px 16px;
+			font-size: 12px;
 		}
 	}
 </style>

@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-// RunStatus shows a dashboard of osmotic data and doggowoof alerts.
+// RunStatus shows a dashboard of Deep Bore session state and alerts.
 func RunStatus(args []string) {
-	stores, err := LoadConfigAndStores()
+	stores, err := LoadStores()
 	if err != nil {
 		fatalf("Error: %v", err)
 	}
@@ -18,43 +18,53 @@ func RunStatus(args []string) {
 	fmt.Println("=== doggo status ===")
 	fmt.Println()
 
-	// Osmotic database summary
-	showOsmoticSummary(ctx, stores)
-
-	// Alerts summary
+	showDeepBoreSession(ctx, stores)
 	showAlertsSummary(ctx, stores)
-
-	// Active clusters
-	showActiveClusters(ctx, stores)
-
-	// Recent alerts
 	showRecentAlerts(ctx, stores, 5)
 }
 
-func showOsmoticSummary(ctx context.Context, stores *Stores) {
-	fmt.Println("Osmotic Database:")
-	itemCount, err := stores.Osmotic.CountItems(ctx)
+func showDeepBoreSession(ctx context.Context, stores *Stores) {
+	cfg := stores.Config.DeepBore
+	fmt.Println("Deep Bore:")
+	if !cfg.Enabled {
+		fmt.Println("  disabled — set [deepbore] enabled = true in config to activate")
+		fmt.Println()
+		return
+	}
+
+	sess, err := stores.Alerts.GetLatestDeepBoreSession(ctx)
 	if err != nil {
 		fmt.Printf("  (error reading: %v)\n\n", err)
 		return
 	}
-
-	sourceCounts, _ := stores.Osmotic.CountItemsBySource(ctx)
-	authorCount, _ := stores.Osmotic.CountAuthors(ctx)
-
-	fmt.Printf("  Items: %d", itemCount)
-	if len(sourceCounts) > 0 {
-		fmt.Print(" (")
-		for i, sc := range sourceCounts {
-			if i > 0 {
-				fmt.Print(", ")
-			}
-			fmt.Printf("%s: %d", sc.Source, sc.Count)
-		}
-		fmt.Print(")")
+	if sess == nil {
+		fmt.Println("  enabled, no session yet — run 'doggo bore --watch'")
+		fmt.Println()
+		return
 	}
-	fmt.Println()
-	fmt.Printf("  Authors: %d\n", authorCount)
+
+	fmt.Printf("  Session: %s\n", sess.SessionName)
+	if sess.AgentName != "" {
+		fmt.Printf("  Agent:   %s\n", sess.AgentName)
+	}
+	if sess.SandboxOK {
+		fmt.Println("  Sandbox: [ok] enabled")
+	} else {
+		fmt.Println("  Sandbox: [!!] VIOLATION DETECTED")
+	}
+	if sess.BinaryHash != "" {
+		hash := sess.BinaryHash
+		if len(hash) > 12 {
+			hash = hash[:12]
+		}
+		fmt.Printf("  Binary:  [ok] verified (sha256: %s...)\n", hash)
+	}
+	if sess.TaskTotal > 0 {
+		fmt.Printf("  Task:    %d/%d (%s)\n", sess.TaskCurrent, sess.TaskTotal, sess.TaskName)
+	}
+	if t, err := ParseISO(sess.UpdatedAt); err == nil {
+		fmt.Printf("  Updated: %s\n", FormatTimeAgo(t))
+	}
 	fmt.Println()
 }
 
@@ -63,7 +73,7 @@ func showAlertsSummary(ctx context.Context, stores *Stores) {
 
 	total, _ := stores.Alerts.CountAlerts(ctx)
 	if total == 0 {
-		fmt.Println("  No alerts yet. Run 'doggo sniff' to start detection.")
+		fmt.Println("  No alerts yet.")
 		fmt.Println()
 		return
 	}
@@ -88,20 +98,6 @@ func showAlertsSummary(ctx context.Context, stores *Stores) {
 	fmt.Println()
 }
 
-func showActiveClusters(ctx context.Context, stores *Stores) {
-	clusters, _ := stores.Alerts.ActiveClusters(ctx)
-	if len(clusters) == 0 {
-		return
-	}
-
-	fmt.Println("Active Clusters:")
-	for _, c := range clusters {
-		fmt.Printf("  %s %s (score: %.2f, seen: %dx)\n",
-			severityIcon(classifySeverity(c.Score)), c.ClusterType, c.Score, c.Occurrences)
-	}
-	fmt.Println()
-}
-
 func showRecentAlerts(ctx context.Context, stores *Stores, limit int) {
 	recent, _ := stores.Alerts.RecentAlerts(ctx, limit)
 	if len(recent) == 0 {
@@ -123,3 +119,4 @@ func showRecentAlerts(ctx context.Context, stores *Stores, limit int) {
 	}
 	fmt.Println()
 }
+
